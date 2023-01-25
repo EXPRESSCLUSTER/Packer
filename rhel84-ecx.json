@@ -1,0 +1,68 @@
+{
+    "builders": [
+        {
+            "type": "qemu",
+            "accelerator": "kvm",
+            "vm_name": "rhel84-base",
+            "ssh_username": "root",
+            "ssh_password": "vagrant",
+            "ssh_port": 22,
+            "ssh_timeout": "1800s",
+            "boot_command": [
+                "<up><wait><tab><wait> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/rhel84-ks.cfg<enter><wait>"
+            ],
+            "boot_wait": "40s",
+            "disk_interface": "virtio",
+            "disk_size": "8192M",
+            "format": "qcow2",
+            "headless": true,
+            "host_port_max": 2229,
+            "host_port_min": 2222,
+            "http_directory": "docroot",
+            "http_port_max": 10089,
+            "http_port_min": 10082,
+            "iso_url": "rhel-8.4-x86_64-dvd.iso",
+            "iso_checksum": "sha256:48f955712454c32718dcde858dea5aca574376a1d7a4b0ed6908ac0b85597811",
+            "net_device": "virtio-net",
+            "output_directory": "tmpbuild",
+            "qemuargs": [
+                [ "-m", "2048M" ],
+                [ "-smp", "cpus=1,maxcpus=16,cores=4" ]
+            ],
+            "shutdown_command": "shutdown -P now"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "file",
+            "source": "expresscls-5.0.2-1.x86_64.rpm",
+            "destination": "/tmp/expresscls-5.0.2-1.x86_64.rpm"
+        },
+        {
+            "type": "file",
+            "source": "base-license.key",
+            "destination": "/tmp/base-license.key"
+        },
+        {
+            "type": "file",
+            "source": "repl-license.key",
+            "destination": "/tmp/repl-license.key"
+        },
+        {
+            "type": "shell",
+            "execute_command": "echo 'vagrant' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
+            "scripts": [
+                "scripts/vagrant.sh",
+                "scripts/firewall.sh",
+                "scripts/expresscluster.sh"
+            ]
+        }
+    ],
+    "post-processors": [
+        {
+            "type": "vagrant",
+            "output": "rhel84-ecx.box",
+            "vagrantfile_template": "Vagrantfile/rhel84-ecx"
+        }
+    ]
+}
